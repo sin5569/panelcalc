@@ -1,6 +1,7 @@
 import streamlit as st
 import math
 import pandas as pd
+import matplotlib.pyplot as plt
 
 st.set_page_config(layout="wide")
 st.title("⚡️ Подбор солнечных панелей под инвертор (с поддержкой 1–3 MPPT)")
@@ -17,7 +18,7 @@ with st.sidebar:
     inv_eff = st.slider("КПД инвертора", 0.5, 1.0, 0.97, 0.01)
 
 st.header("☀️ Параметры панели")
-panel_p = st.number_input("Максимальная мощность солнечной панели W (Pmax)", min_value=1.0, value=410.0)
+panel_p = st.number_input("Максимальная мощность панели W (Pmax)", min_value=1.0, value=410.0)
 panel_vmp = st.number_input("Рабочее напряжение панели V (Vmp)", min_value=0.0, value=34.0)
 panel_imp = st.number_input("Ток при максимальной мощности панели A(Imp)", min_value=0.0, value=12.0)
 panel_voc = st.number_input("Напряжение холостого хода панели V (Voc)", min_value=0.0, value=41.0)
@@ -59,6 +60,34 @@ def calc_for_mppt(n_series, n_parallel, vdc_max, mppt_v_min, mppt_v_max, idc_max
         "issues": "; ".join(issues) if issues else "OK"
     }
 
+def draw_scheme(n_series, n_parallel_per_mppt, mppt_count):
+    fig, ax = plt.subplots(figsize=(8, 2 + mppt_count*2), facecolor='none')  # прозрачный фон
+    ax.set_xlim(0, n_series + 2)
+    ax.set_ylim(0, mppt_count*(n_parallel_per_mppt + 1))
+    ax.axis('off')  # убираем оси
+
+    # Инвертор
+    ax.add_patch(plt.Rectangle((n_series + 1, 0), 1, mppt_count*(n_parallel_per_mppt + 1),
+                               color="white", alpha=0.3))
+    ax.text(n_series + 1.5, mppt_count*(n_parallel_per_mppt + 1)/2, "INV",
+            ha='center', va='center', fontsize=12)
+
+    # Панели
+    for mppt_idx in range(mppt_count):
+        y_offset = mppt_idx*(n_parallel_per_mppt + 1)
+        for par_idx in range(n_parallel_per_mppt):
+            y = y_offset + par_idx + 0.5
+            for series_idx in range(n_series):
+                rect = plt.Rectangle((series_idx, y), 0.8, 0.4, color='skyblue')
+                ax.add_patch(rect)
+                if series_idx == 0:
+                    ax.text(series_idx-0.2, y+0.2, f"MPPT{mppt_idx+1}", va='center',
+                            ha='right', fontsize=8)
+            # Линия к инвертору
+            ax.plot([n_series, n_series+1], [y+0.2, y+0.5], color='white', linewidth=1)
+
+    st.pyplot(fig, clear_figure=True)
+
 # ===== Расчёт =====
 st.header("📊 Расчёт конфигурации")
 
@@ -75,8 +104,16 @@ if st.button("Рассчитать"):
         results.append(res)
 
     df = pd.DataFrame(results)
+
+    # 🔌 Рисуем интерактивную схему подключения
+    st.subheader("Схема подключения панелей к инвертору")
+    draw_scheme(n_series, n_parallel_per_mppt, mppt_count)
+
+    # Таблица результатов
+    st.subheader("📑 Результаты по каждому MPPT")
     st.dataframe(df)
 
+    # Итог по системе
     st.subheader("⚡ Итог по системе")
     st.write(f"Всего панелей: **{n_series * n_parallel_per_mppt * mppt_count} шт.**")
     st.write(f"Суммарная мощность DC: **{total_power_dc/1000:.2f} кВт**")
