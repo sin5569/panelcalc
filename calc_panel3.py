@@ -55,7 +55,7 @@ def calc_for_mppt(n_series, n_parallel, vdc_max, mppt_v_min, mppt_v_max, idc_max
         "Напр. холостого хода Voc": string_voc,
         "Рабочее напр. Vmp": string_vmp,
         "Ток при макс. мощности Imp": string_imp,
-        "Постоянный ток": power_dc,
+        "Ватт на один MPPT": power_dc,
         "Проблема": "; ".join(issues) if issues else "OK"
     }
 
@@ -98,7 +98,7 @@ if st.button("Рассчитать"):
     total_power_dc = 0
     for mppt in range(1, mppt_count+1):
         res = calc_for_mppt(n_series, n_parallel_per_mppt, vdc_max, mppt_v_min, mppt_v_max, idc_max)
-        total_power_dc += res["Постоянный ток"]
+        total_power_dc += res["Ватт на один MPPT"]
         res["mppt"] = f"MPPT {mppt}"
         results.append(res)
 
