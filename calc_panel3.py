@@ -52,12 +52,11 @@ def calc_for_mppt(n_series, n_parallel, vdc_max, mppt_v_min, mppt_v_max, idc_max
 
     power_dc = panel_p * n_series * n_parallel
     return {
-        "ok": ok,
-        "voc": string_voc,
-        "vmp": string_vmp,
-        "imp": string_imp,
-        "power_dc": power_dc,
-        "issues": "; ".join(issues) if issues else "OK"
+        "Напр. холостого хода Voc": string_voc,
+        "Рабочее напр. Vmp": string_vmp,
+        "Ток при макс. мощности Imp": string_imp,
+        "Постоянный ток": power_dc,
+        "Проблема": "; ".join(issues) if issues else "OK"
     }
 
 def draw_scheme(n_series, n_parallel_per_mppt, mppt_count):
@@ -99,7 +98,7 @@ if st.button("Рассчитать"):
     total_power_dc = 0
     for mppt in range(1, mppt_count+1):
         res = calc_for_mppt(n_series, n_parallel_per_mppt, vdc_max, mppt_v_min, mppt_v_max, idc_max)
-        total_power_dc += res["power_dc"]
+        total_power_dc += res["Постоянный ток"]
         res["mppt"] = f"MPPT {mppt}"
         results.append(res)
 
@@ -114,7 +113,7 @@ if st.button("Рассчитать"):
     st.dataframe(df)
 
     # Итог по системе
-    st.subheader("⚡ Итог по системе")
+    st.subheader("⚡ Итог:")
     st.write(f"Всего панелей: **{n_series * n_parallel_per_mppt * mppt_count} шт.**")
     st.write(f"Суммарная мощность DC: **{total_power_dc/1000:.2f} кВт**")
     st.write(f"Оценка мощности AC (с КПД {inv_eff*100:.1f}%): **{total_power_dc*inv_eff/1000:.2f} кВт**")
