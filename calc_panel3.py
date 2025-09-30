@@ -150,7 +150,7 @@ battery_names = st.sidebar.text_area(
 # Ёмкость батарей
 capacities = st.sidebar.text_area(
     "Ёмкость батарей (кВт·ч, через запятую, в том же порядке)", 
-    value="5, 10, 15"
+    value="5, 10, 15, 20"
 ).split(",")
 capacities = [float(c.strip()) for c in capacities]
 
