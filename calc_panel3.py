@@ -38,10 +38,8 @@ def calc_for_mppt(n_series, n_parallel, vdc_max, mppt_v_min, mppt_v_max, idc_max
     string_vmp = panel_vmp * n_series
     string_imp = panel_imp * n_parallel
 
-    ok = True
     issues = []
     if string_voc > vdc_max:
-        ok = False
         issues.append("❌Voc строки превышает Vdc_max")
     if string_vmp < mppt_v_min:
         issues.append("❌Vmp ниже MPPT диапазона")
@@ -63,7 +61,7 @@ def draw_scheme(n_series, n_parallel_per_mppt, mppt_count):
     fig, ax = plt.subplots(figsize=(8, 2 + mppt_count*2), facecolor='none')  # прозрачный фон
     ax.set_xlim(0, n_series + 2)
     ax.set_ylim(0, mppt_count*(n_parallel_per_mppt + 1))
-    ax.axis('off')  # убираем оси
+    ax.axis('off')
 
     # Инвертор
     ax.add_patch(plt.Rectangle((n_series + 1, 0), 1, mppt_count*(n_parallel_per_mppt + 1),
@@ -87,12 +85,18 @@ def draw_scheme(n_series, n_parallel_per_mppt, mppt_count):
 
     st.pyplot(fig, clear_figure=True)
 
+# ===== Автоподбор числа параллельных строк =====
+st.header("📊 Автоподбор количества параллельных строк (DC/AC ~ 1.2)")
+target_ratio = 1.2
+default_n_series = 10
+n_parallel_calc = max(1, round((inv_power_ac * 1000 * target_ratio) / (panel_p * default_n_series * mppt_count)))
+st.write(f"Рекомендуемое количество параллельных строк на один MPPT: **{n_parallel_calc}**")
+
+# Пользователь может изменить вручную
+n_series = st.number_input("Панелей в строке", min_value=1, value=default_n_series)
+n_parallel_per_mppt = st.number_input("Параллельных строк на один MPPT", min_value=1, value=n_parallel_calc)
+
 # ===== Расчёт =====
-st.header("📊 Расчёт конфигурации")
-
-n_series = st.number_input("Панелей в строке", min_value=1, value=10)
-n_parallel_per_mppt = st.number_input("Параллельных строк на один MPPT", min_value=1, value=2)
-
 if st.button("Рассчитать"):
     results = []
     total_power_dc = 0
@@ -118,5 +122,12 @@ if st.button("Рассчитать"):
     st.write(f"Суммарная мощность DC: **{total_power_dc/1000:.2f} кВт**")
     st.write(f"Оценка мощности AC (с КПД {inv_eff*100:.1f}%): **{total_power_dc*inv_eff/1000:.2f} кВт**")
 
-    if total_power_dc/1000 > inv_power_ac*1.3:
+    # DC/AC коэффициент
+    dc_ac_ratio = total_power_dc / (inv_power_ac * 1000)
+    st.write(f"DC/AC коэффициент: **{dc_ac_ratio:.2f}**")
+    if dc_ac_ratio > 1.3:
         st.warning("❌DC/AC коэффициент слишком большой (>1.3). Возможны потери на клиппинге.")
+    elif dc_ac_ratio < 1.0:
+        st.info("ℹ️ DC/AC коэффициент меньше 1.0 — инвертор недогружен")
+    else:
+        st.success("✅ DC/AC коэффициент в оптимальном диапазоне")
