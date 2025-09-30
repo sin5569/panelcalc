@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 st.set_page_config(layout="wide")
-st.title("⚡️ Подбор солнечных панелей под инвертор (с поддержкой 1–3 MPPT)")
+st.title("☀️ Подбор солнечных панелей под инвертор (с поддержкой 1–3 MPPT)")
 
 # ===== Входные данные =====
 with st.sidebar:
@@ -17,7 +17,7 @@ with st.sidebar:
     idc_max = st.number_input("Макс. DC ток на один MPPT, А", min_value=0.0, value=15.0, step=0.1)
     inv_eff = st.slider("КПД инвертора", 0.5, 1.0, 0.97, 0.01)
 
-st.header("☀️ Параметры панели")
+st.header("Параметры панели")
 panel_p = st.number_input("Максимальная мощность панели W (Pmax)", min_value=1.0, value=410.0)
 panel_vmp = st.number_input("Рабочее напряжение панели V (Vmp)", min_value=0.0, value=34.0)
 panel_imp = st.number_input("Ток при максимальной мощности панели A(Imp)", min_value=0.0, value=12.0)
