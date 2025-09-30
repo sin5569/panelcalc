@@ -86,7 +86,7 @@ def draw_scheme(n_series, n_parallel_per_mppt, mppt_count):
     st.pyplot(fig, clear_figure=True)
 
 # ===== Автоподбор числа параллельных строк =====
-st.header("📊 Автоподбор количества параллельных строк (DC/AC ~ 1.2)")
+st.header("Автоподбор количества параллельных строк (DC/AC ~ 1.2)")
 target_ratio = 1.2
 default_n_series = 10
 n_parallel_calc = max(1, round((inv_power_ac * 1000 * target_ratio) / (panel_p * default_n_series * mppt_count)))
